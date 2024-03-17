@@ -418,12 +418,14 @@ class SumoEnvironment(gym.Env):
         accumulated_waiting_time = [
             sum(self.traffic_signals[ts].get_accumulated_waiting_time_per_lane()) for ts in self.ts_ids
         ]
+        avg_delay = sum([self.traffic_signals[ts].get_average_delay() for ts in self.ts_ids]) / len(self.ts_ids)
         average_speed = [self.traffic_signals[ts].get_average_speed() for ts in self.ts_ids]
         info = {}
         for i, ts in enumerate(self.ts_ids):
             info[f"{ts}_stopped"] = stopped[i]
             info[f"{ts}_accumulated_waiting_time"] = accumulated_waiting_time[i]
             info[f"{ts}_average_speed"] = average_speed[i]
+        info["avg_delay"] = avg_delay
         info["agents_total_stopped"] = sum(stopped)
         info["agents_total_accumulated_waiting_time"] = sum(accumulated_waiting_time)
         return info

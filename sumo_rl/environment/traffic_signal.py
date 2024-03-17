@@ -231,6 +231,28 @@ class TrafficSignal:
             wait_time_per_lane.append(wait_time)
         return wait_time_per_lane
 
+    def get_average_delay(self) -> float:
+        wait_time_per_lane = []
+        total_vehicles = 1
+        for lane in self.lanes:
+            veh_list = self.sumo.lane.getLastStepVehicleIDs(lane)
+            if len(veh_list):
+                total_vehicles += len(veh_list)
+
+            wait_time = 0.0
+            for veh in veh_list:
+                veh_lane = self.sumo.vehicle.getLaneID(veh)
+                acc = self.sumo.vehicle.getAccumulatedWaitingTime(veh)
+                if veh not in self.env.vehicles:
+                    self.env.vehicles[veh] = {veh_lane: acc}
+                else:
+                    self.env.vehicles[veh][veh_lane] = acc - sum(
+                        [self.env.vehicles[veh][lane] for lane in self.env.vehicles[veh].keys() if lane != veh_lane]
+                    )
+                wait_time += self.env.vehicles[veh][veh_lane]
+            wait_time_per_lane.append(wait_time)
+        return sum(wait_time_per_lane) / total_vehicles
+
     def get_average_speed(self) -> float:
         """Returns the average speed normalized by the maximum allowed speed of the vehicles in the intersection.
 
