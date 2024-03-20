@@ -52,9 +52,13 @@ def trial_post_proc(data_dir, name):
             subname = basename(loss_file)[:2]
             df = pd.read_csv(loss_file, header=None, dtype=np.float32, on_bad_lines="skip")
             ep_data = np.array(df)
-            axs[row, col].plot(ep_data, color=color_scheme[counter])
-            axs[row, col].set_title(subname, y=-0.01, color="red")
-        # plt.show()
+            axs[row, col].plot(ep_data, color=color_scheme[counter], label="raw data")
+            axs[row, col].set_title(subname, y=-0.01, color="orange")
+            cumsum_vec = np.cumsum(np.insert(ep_data, 0, 0)) 
+            window_width = 250
+            ma_vec = (cumsum_vec[window_width:] - cumsum_vec[:-window_width]) / window_width
+            axs[row, col].plot(ma_vec, color="red", label=f"{window_width} step sliding average")
+        plt.legend()
         plt.savefig(f"{data_dir}/dqn_trainer_loss.png")
         plt.close()
 
@@ -73,8 +77,9 @@ def trial_post_proc(data_dir, name):
     plt.plot(delay, label="raw data")
     plt.title(f"{name} Average Imposed Delays")
     plt.xlabel("Episode")
-    ticker = np.arange(0, len(delay), step=360)
+    ticker = np.arange(0, len(delay), step=360*5)
     t_labels = np.arange(0, len(ticker))
+    t_labels *= 5
     plt.xticks(ticker, t_labels)
     plt.ylabel("Delay (seconds)")
     cumsum_vec = np.cumsum(np.insert(delay, 0, 0)) 
@@ -88,8 +93,9 @@ def trial_post_proc(data_dir, name):
     plt.plot(total_stopped, label="raw data")
     plt.title(f"{name} System Total Stopped")
     plt.xlabel("Episode")
-    ticker = np.arange(0, len(total_stopped), step=360)
+    ticker = np.arange(0, len(total_stopped), step=360*5)
     t_labels = np.arange(0, len(ticker))
+    t_labels *= 5
     plt.xticks(ticker, t_labels)
     plt.ylabel("No. Vehicles")
     window_width = 250
